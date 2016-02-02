@@ -1,7 +1,7 @@
 #include <NewPing.h>
 #include <SoftwareSerial.h>
 
-#define MAX_DISTANCE   200
+#define MAX_DISTANCE   300
 
 #define TRIGGER_PIN1    10
 #define ECHO_PIN1       11
@@ -30,7 +30,7 @@ void setup() {
 
 String get_json() {
     String ret = "";
-    int d1, d2;
+    int d1 = -1, d2 = -1;
     delay(100);
     d1 = sonar1.ping_cm();
     delay(100);
@@ -40,6 +40,7 @@ String get_json() {
     ret += ", \"sonar2\": ";
     ret += d2;
     ret += "}";
+    Serial.println(ret);
     return ret;
 }
 /*
@@ -58,23 +59,23 @@ void loop() {
 
 void loop() {
     String input = "";
+    String json = "";
     while (esp_serial.available() > 0) {
         input += (char) esp_serial.read();
         delay(5); // Nao sei se e necessario
-    }
+    };
 
     if (input == "SENSOR") {
-        Serial.println("Recebeu GET... enviando");
-        String json = get_json();
+        Serial.println("Recebeu SENSOR... enviando:");
+        json = get_json();
         esp_serial.println(json);
         Serial.println(json);
-    }
-
+    };
     if (input == "GET /") {
         Serial.println("Caregou /");
-    }
+    };
     if (input != ""){
         Serial.print(" > ");
         Serial.println(input);
-    }
+    };
 };
