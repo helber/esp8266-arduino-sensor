@@ -25,34 +25,35 @@ char * get_json() {
     int d1 = -1, d2 = -1;
     delay(200);
     d1 = sonar1.ping_cm();
-    Serial.println(d1);
     delay(200);
     d2 = sonar2.ping_cm();
-    Serial.println(d2);
     snprintf(ret, 100, "{\"sonar1\": %d, \"sonar2\": %d}", d1, d2);
-    Serial.println(ret);
     return ret;
 }
 
 void loop() {
-    String input = "";
+    char input[500] = "";
+    int pos = 0;
     char * json = "";
     while (esp_serial.available() > 0) {
-        input += (char) esp_serial.read();
-        // delay(10); // Nao sei se e necessario
+        input[pos] = esp_serial.read();
+        pos++;
     };
-
-    if (input == "SENSOR") {
-        Serial.println("Recebeu SENSOR... enviando:");
+    if (strcmp(input, "") != 0){
+        Serial.print("SERIAL > [");
+        Serial.print(input);
+        Serial.print("] ");
+    };
+    if (strcmp(input, "SENSOR") == 0) {
+        Serial.print("GET /sensor");
         json = get_json();
-        esp_serial.print(json);
+        Serial.print(" SEND:[");
         Serial.print(json);
+        Serial.println("]");
+        esp_serial.print(json);
+        // Serial.print(json);
     };
-    if (input == "GET /") {
-        Serial.println("Caregou /");
-    };
-    if (input != ""){
-        Serial.print(" > ");
-        Serial.println(input);
+    if (strcmp(input, "GET /") == 0) {
+        Serial.println("SERIAL > GET /");
     };
 };
