@@ -18,58 +18,35 @@ void setup() {
   Serial.begin(115200);
   esp_serial.begin(115200);
   Serial.println("Iniciado...");
-  /*
-  pinMode(ESP_TX, OUTPUT);
-  pinMode(ESP_RX, OUTPUT);
-  pinMode(13, OUTPUT);
-  digitalWrite(ESP_TX, LOW);
-  digitalWrite(ESP_RX, LOW);
-  digitalWrite(13, LOW);
-  */
 };
 
-String get_json() {
-    String ret = "";
+char * get_json() {
+    char ret[100];
     int d1 = -1, d2 = -1;
-    delay(100);
+    delay(200);
     d1 = sonar1.ping_cm();
-    delay(100);
+    Serial.println(d1);
+    delay(200);
     d2 = sonar2.ping_cm();
-    ret += "{\"sonar1\": ";
-    ret += d1;
-    ret += ", \"sonar2\": ";
-    ret += d2;
-    ret += "}";
+    Serial.println(d2);
+    snprintf(ret, 100, "{\"sonar1\": %d, \"sonar2\": %d}", d1, d2);
     Serial.println(ret);
     return ret;
 }
-/*
-void loop() {
-    Serial.println("Vivo...");
-    digitalWrite(ESP_TX, LOW);
-    digitalWrite(ESP_RX, LOW);
-    digitalWrite(13, LOW);
-    delay(1000);
-    digitalWrite(ESP_TX, HIGH);
-    digitalWrite(ESP_RX, HIGH);
-    digitalWrite(13, HIGH);
-    delay(1000);
-}
-*/
 
 void loop() {
     String input = "";
-    String json = "";
+    char * json = "";
     while (esp_serial.available() > 0) {
         input += (char) esp_serial.read();
-        delay(5); // Nao sei se e necessario
+        // delay(10); // Nao sei se e necessario
     };
 
     if (input == "SENSOR") {
         Serial.println("Recebeu SENSOR... enviando:");
         json = get_json();
-        esp_serial.println(json);
-        Serial.println(json);
+        esp_serial.print(json);
+        Serial.print(json);
     };
     if (input == "GET /") {
         Serial.println("Caregou /");
