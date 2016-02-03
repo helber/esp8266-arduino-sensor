@@ -50,7 +50,7 @@ void loop() {
         Serial.print(" SEND:[");
         Serial.print(json);
         Serial.println("]");
-        esp_serial.print(json);
+        esp_serial.write(json);
         // Serial.print(json);
     };
     if (strcmp(input, "GET /") == 0) {
