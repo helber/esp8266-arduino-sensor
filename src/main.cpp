@@ -1,7 +1,10 @@
 #include <NewPing.h>
 #include <SoftwareSerial.h>
 
-#define MAX_DISTANCE   300
+// 4800 9600 19200 38400 57600 115200
+#define SERIAL_BAUD  115200
+
+#define MAX_DISTANCE   200
 
 #define TRIGGER_PIN1    10
 #define ECHO_PIN1       11
@@ -16,7 +19,7 @@ SoftwareSerial esp_serial(ESP_RX, ESP_TX); // RX, TX
 
 void setup() {
   Serial.begin(115200);
-  esp_serial.begin(115200);
+  esp_serial.begin(SERIAL_BAUD);
   Serial.println("Iniciado...");
 };
 
