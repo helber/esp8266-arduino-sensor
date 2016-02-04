@@ -13,8 +13,8 @@
 #define ESP_TX           6
 #define ESP_RX           7
 
-unsigned long d1, d2;
-char ret[100];
+unsigned long d1, d2, runid;
+char ret[200];
 
 NewPing sonar1(TRIGGER_PIN1, ECHO_PIN1, MAX_DISTANCE);
 NewPing sonar2(TRIGGER_PIN2, ECHO_PIN2, MAX_DISTANCE);
@@ -27,14 +27,19 @@ void setup() {
   Serial.println("Iniciado...");
   Serial.flush();
   esp_serial.flush();
+  runid = 0;
 };
 
-char * get_json() {
-    delay(100);
+void update_dist() {
     d1 = sonar1.ping_cm();
-    delay(100);
+    delay(80);
     d2 = sonar2.ping_cm();
-    snprintf(ret, 100, "{\"sonar1\": %lu, \"sonar2\": %lu}", d1, d2);
+}
+
+char * get_json() {
+    int sec = millis() / 1000;
+    snprintf(ret, 200, "{\"sonar1\": %lu, \"sonar2\": %lu, \"sec\": %d}", d1, d2, sec);
+    // snprintf(ret, 200, "{\"sonar1\": %lu, \"sonar2\": %lu}", d1, d2);
     return ret;
 }
 
@@ -42,34 +47,31 @@ void loop() {
     char input[500] = "";
     int pos = 0;
     while (esp_serial.available() > 0) {
-        input[pos] = esp_serial.read();
+        input[pos] = (char) esp_serial.read();
         pos++;
-    };
-    delay(100);
-    d1 = sonar1.ping_cm();
-    delay(100);
-    d2 = sonar2.ping_cm();
+    }
+    if ((runid / 10000) == 1) {
+        update_dist();
+        Serial.println(get_json());
+        runid = 0;
+        delay(1);
+    } else {
+        runid++;
+    }
     if (strcmp(input, "") != 0){
         Serial.print("SERIAL > [");
         Serial.print(input);
         Serial.print("] ");
+        Serial.print(get_json());
     };
     if (strcmp(input, "SENSOR") == 0) {
         Serial.print("GET /sensor");
         Serial.print(" SEND:[");
-        Serial.print(d1);
-        Serial.print(", ");
-        Serial.print(d2);
+        Serial.print(get_json());
         Serial.println("]");
-        esp_serial.print("{\"sonar1\": ");
-        esp_serial.print(d1);
-        esp_serial.print(", \"sonar2\": ");
-        esp_serial.print(d2);
-        esp_serial.print("}");
+        esp_serial.write(get_json());
     };
     if (strcmp(input, "GET /") == 0) {
         Serial.println("SERIAL > GET /");
     };
-    esp_serial.flush();
-    Serial.flush();
 };
