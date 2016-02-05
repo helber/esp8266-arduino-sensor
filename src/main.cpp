@@ -14,7 +14,7 @@
 #define ESP_RX           7
 
 unsigned long d1, d2, runid;
-char ret[200];
+// char ret[200];
 
 NewPing sonar1(TRIGGER_PIN1, ECHO_PIN1, MAX_DISTANCE);
 NewPing sonar2(TRIGGER_PIN2, ECHO_PIN2, MAX_DISTANCE);
@@ -36,9 +36,17 @@ void update_dist() {
     d2 = sonar2.ping_cm();
 }
 
-char * get_json() {
+String get_json() {
+    String ret;
     int sec = millis() / 1000;
-    snprintf(ret, 200, "{\"sonar1\": %lu, \"sonar2\": %lu, \"sec\": %d}", d1, d2, sec);
+    ret = "{\"sonar1\":";
+    ret += d1;
+    ret += ",\"sonar2\":";
+    ret += d2;
+    ret += ",\"sec\":";
+    ret += sec;
+    ret += "}";
+    // snprintf(ret, "{\"sonar1\": %lu, \"sonar2\": %lu, \"sec\": %d}", d1, d2, sec);
     // snprintf(ret, 200, "{\"sonar1\": %lu, \"sonar2\": %lu}", d1, d2);
     return ret;
 }
@@ -52,12 +60,24 @@ void loop() {
     }
     if ((runid / 10000) == 1) {
         update_dist();
-        Serial.println(get_json());
+        // Serial.println(get_json());
         runid = 0;
         delay(1);
     } else {
         runid++;
     }
+    if (strcmp(input, "SENSOR") == 0) {
+        int sec = millis() / 1000;
+        // esp_serial.print(get_json());
+        esp_serial.print("{\"sonar1\": ");
+        esp_serial.print(d1);
+        esp_serial.print(", \"sonar2\": ");
+        esp_serial.print(d2);
+        esp_serial.print(", \"sec\": ");
+        esp_serial.print(sec);
+        esp_serial.print("}");
+    };
+    /*
     if (strcmp(input, "") != 0){
         Serial.print("SERIAL > [");
         Serial.print(input);
@@ -69,9 +89,10 @@ void loop() {
         Serial.print(" SEND:[");
         Serial.print(get_json());
         Serial.println("]");
-        esp_serial.write(get_json());
+        esp_serial.print(get_json());
     };
     if (strcmp(input, "GET /") == 0) {
         Serial.println("SERIAL > GET /");
     };
+    */
 };
