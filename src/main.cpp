@@ -14,6 +14,8 @@
 #define ESP_RX           7
 
 unsigned long d1, d2, runid;
+bool stringComplete = false;
+String input = "";
 // char ret[200];
 
 NewPing sonar1(TRIGGER_PIN1, ECHO_PIN1, MAX_DISTANCE);
@@ -22,11 +24,13 @@ SoftwareSerial esp_serial(ESP_RX, ESP_TX); // RX, TX
 
 void setup() {
   Serial.begin(115200);
+  while (!Serial) {;}
   esp_serial.begin(SERIAL_BAUD);
   Serial.flush();
   Serial.println("Iniciado...");
   Serial.flush();
   esp_serial.flush();
+  input.reserve(200);
   runid = 0;
 };
 
@@ -52,21 +56,29 @@ String get_json() {
 }
 
 void loop() {
-    char input[500] = "";
-    int pos = 0;
-    while (esp_serial.available() > 0) {
-        input[pos] = (char) esp_serial.read();
-        pos++;
-    }
-    if ((runid / 10000) == 1) {
+    if ((runid / 50000) == 1) {
         update_dist();
         // Serial.println(get_json());
         runid = 0;
         delay(1);
+        Serial.println(get_json());
     } else {
         runid++;
+    };
+    esp_serial.listen();
+    while (esp_serial.available()) {
+        char inChar = (char) esp_serial.read();
+        // add it to the inputString:
+        input += inChar;
+        // if the incoming character is a newline, set a flag
+        // so the main loop can do something about it:
+        Serial.print((int)inChar);Serial.print(" ");
+        if (inChar == 'R') {
+          stringComplete = true;
+          Serial.println(";");
+        }
     }
-    if (strcmp(input, "SENSOR") == 0) {
+    if (stringComplete) {
         int sec = millis() / 1000;
         // esp_serial.print(get_json());
         esp_serial.print("{\"sonar1\": ");
@@ -76,7 +88,9 @@ void loop() {
         esp_serial.print(", \"sec\": ");
         esp_serial.print(sec);
         esp_serial.print("}");
-    };
+        input = "";
+        stringComplete = false;
+    }
     /*
     if (strcmp(input, "") != 0){
         Serial.print("SERIAL > [");
